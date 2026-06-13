@@ -428,7 +428,9 @@
     playIcon.setAttribute('d', playing ? pausePath : playPath);
     liveLabel.textContent = playing ? 'ON AIR' : 'LIVE RADIO';
     document.body.classList.toggle('playing', playing);
-    if(playing) startViz(); else stopViz();
+    if(window.matchMedia('(min-width: 701px) and (min-height: 701px)').matches){
+      if(playing) startViz(); else stopViz();
+    }
   }
 
   const knownFreqs = {
