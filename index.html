@@ -77,9 +77,24 @@
 
   .player-card{
     background:var(--card); border:1px solid var(--cardBorder); border-radius:24px;
-    display:grid; grid-template-rows:auto auto auto auto 1fr auto;
-    padding:5% 6%; gap:3%; min-height:0; transition:background .4s,border-color .4s;
+    display:grid; grid-template-rows:auto auto minmax(40px,1fr) auto auto;
+    padding:5% 6%; gap:2.5%; min-height:0; transition:background .4s,border-color .4s;
     position:relative; overflow:hidden;
+  }
+  .player-card > *{ min-height:0; min-width:0; }
+
+  @media (max-width: 700px), (max-height: 700px){
+    .dash{ grid-template-columns:1fr; grid-template-rows:auto auto 1fr; }
+    .gmap-link{ font-size:13px; padding:8px 16px; }
+    .clock{ font-size:32px; }
+    .player-card{ padding:4% 5%; gap:2%; }
+    .freq-badge{ font-size:34px; }
+    .visualizer{ display:none; }
+    .player-card{ grid-template-rows:auto auto auto auto; }
+    .station-name{ font-size:18px; }
+    .controls{ gap:14px; }
+    .ctrl-btn{ width:46px; height:46px; }
+    .play-main{ width:60px; height:60px; }
   }
 
   .station-top{ display:flex; align-items:center; gap:16px; }
@@ -524,9 +539,19 @@
     if(currentCC === 'FAV') renderList();
   });
 
+  function unlockAudio(){
+    try{
+      if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if(audioCtx.state === 'suspended'){ audioCtx.resume(); }
+    }catch(e){}
+  }
+
   playBtn.addEventListener('click', function(){
+    unlockAudio();
     if(currentIndex === -1 && stations.length){ playStation(0); return; }
-    if(audio.paused){ audio.play().then(function(){ setPlayIcon(true); }); }
+    if(audio.paused){ audio.play().then(function(){ setPlayIcon(true); }).catch(function(){ setPlayIcon(false); }); }
     else { audio.pause(); setPlayIcon(false); }
   });
   document.getElementById('prevBtn').addEventListener('click', function(){
@@ -598,8 +623,10 @@
   const ctx2d = canvas.getContext('2d');
 
   function ensureAudioGraph(){
-    if(audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(!audioCtx){
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if(analyser) return;
     sourceNode = audioCtx.createMediaElementSource(audio);
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 64;
